@@ -28,9 +28,10 @@
 #   you.
 
 QUIMBY_BODY="\
-This pull request was created by github.com/nasamuffin/quimby, a tool for Git \
-contributors who are accustomed to a git-format-patch/git-send-email workflow \
-but want to see the GitGitGadget CI run results. It should probably be ignored!"
+This pull request was created by https://github.com/nasamuffin/quimby, a tool \
+for Git contributors who are accustomed to a git-format-patch/git-send-email \
+workflow but want to see the GitGitGadget CI run results. It should probably \
+be ignored!"
 
 # Positional parameters
 PARAMS=()
