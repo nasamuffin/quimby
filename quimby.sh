@@ -5,7 +5,6 @@
 # Usage:
 #
 #   quimby [-v <version>] [--rfc] [-o <path>] <base-branch> <topic-branch>
-#     <subject line>
 #
 # When you invoke 'quimby' against your topic, it does the following things:
 #
@@ -63,16 +62,16 @@ while (( "$#" )); do
   esac
 done
 
-if [[ "${#PARAMS[@]}" -ne 3 ]];
+if [[ "${#PARAMS[@]}" -ne 2 ]];
 then
   # todo echo usage
-  echo " quimby [-v <version>] [--rfc] [-o <path>] <base-branch> <topic-branch> <subject line>"
+  echo " quimby [-v <version>] [--rfc] [-o <path>] <base-branch> <topic-branch>"
   exit
 fi
 
 base_branch="${PARAMS[0]}"
 topic_branch="${PARAMS[1]}"
-subject="${PARAMS[2]}"
+subject="[QUIMBY] CI run for ${topic_branch} on top of ${base_branch}"
 
 if [[ -z "${output_path}" ]];
 then
