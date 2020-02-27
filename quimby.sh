@@ -82,7 +82,7 @@ fi
 # Sneakily, grab the GH username iff a PR already exists.
 # This is hacky!!! It relies on user-targeted output!!! 'gh' seems ill-suited
 # for scripting. :(
-user_name="$(gh -R gitgitgadget/git pr status | grep "${topic_branch}" |
+user_name="$(gh -R gitgitgadget/git pr status | grep ":${topic_branch}\]" |
   grep -v "no pull request" | uniq |
   sed -e 's/.*\[\(.*\):'"${topic_branch}"'\]/\1/')"
 
