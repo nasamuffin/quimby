@@ -88,7 +88,7 @@ user_name="$(gh -R gitgitgadget/git pr status | grep ":${topic_branch}\]" |
 # Check if PR exists on GGG
 if [[ -z "${user_name}" ]];
 then
-  gh -R gitgitgadget/git pr create -d -B "${base_branch}" -t "${subject}" \
+  gh -R gitgitgadget/git pr create -d -B "${base_branch#gitster/}" -t "${subject}" \
     -b "${QUIMBY_BODY}"
 else
   git push "ssh://git@github.com/${user_name}/git" "${base_branch}" +"${topic_branch}"
