@@ -10,8 +10,8 @@
 #
 # 1) Pushes (by force if necessary) <topic-branch> and <base-branch> to your
 #    fork of Git on Github.
-# 2) If one doesn't already exist, opens a PR against GitGitGadget for
-#    <topic-branch>, based on <base-branch> as GitGitGadget knows it.
+# 2) If one doesn't already exist, opens a PR against Git for <topic-branch>,
+#    based on <base-branch> as Git knows it.
 # 3) Calls 'git-format-patch' with the provided flags, plus --cover-letter if
 #    more than one commit will exist.
 # 4) Tells you where your mails went, and hands you a link to the PR.
@@ -81,14 +81,14 @@ fi
 # Sneakily, grab the GH username iff a PR already exists.
 # This is hacky!!! It relies on user-targeted output!!! 'gh' seems ill-suited
 # for scripting. :(
-user_name="$(gh -R gitgitgadget/git pr status | grep ":${topic_branch}\]" |
+user_name="$(gh -R git/git pr status | grep ":${topic_branch}\]" |
   grep -v "no pull request" | uniq |
   sed -e 's/.*\[\(.*\):'"${topic_branch}"'\]/\1/')"
 
 # Check if PR exists on GGG
 if [[ -z "${user_name}" ]];
 then
-  gh -R gitgitgadget/git pr create -d -B "${base_branch#gitster/}" -t "${subject}" \
+  gh -R git/git pr create -d -B "${base_branch#gitster/}" -t "${subject}" \
     -b "${QUIMBY_BODY}"
 else
   git push "ssh://git@github.com/${user_name}/git" "${base_branch}" +"${topic_branch}"
