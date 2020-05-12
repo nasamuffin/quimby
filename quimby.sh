@@ -4,55 +4,43 @@
 #
 # Usage:
 #
-#   quimby [-v <version>] [--rfc] [-o <path>] <base-branch> <topic-branch>
+#   quimby <base-branch> <topic-branch> [-C <path>] [args-to-format-patch...]
 #
 # When you invoke 'quimby' against your topic, it does the following things:
 #
 # 1) Pushes (by force if necessary) <topic-branch> and <base-branch> to your
 #    fork of Git on Github.
-# 2) If one doesn't already exist, opens a PR against Git for <topic-branch>,
-#    based on <base-branch> as Git knows it.
-# 3) Calls 'git-format-patch' with the provided flags, plus --cover-letter if
+# 2) Calls 'git-format-patch' with the provided flags, plus --cover-letter if
 #    more than one commit will exist.
-# 4) Tells you where your mails went, and hands you a link to the PR.
 #
-# quimby relies on git of course, and on the Github CLI 'gh'.
+# quimby must be run from inside a repo, or a repo must be specified with -C.
+#
+# You must set a Git config "quimby.fork" to contain the name of your fork of
+# Git. This can take the form either of a previously configured remote, or a
+# URL, as it will be passed directly to 'git push'.
+#
 #
 # Some notes:
 #
-# - <base-branch> must be a branch which is mirrored by GitGitGadget. That means
-#   it could be any branch which exists in gitster/git.
+# - Actions will only be run if <base-branch>..<topic-branch> contains
+#   dd/ci-swap-azure-pipelines-with-github-actions. That topic was merged to
+#   'master' on April 29, 2020 (8cb514d1cb), but an older version of 'master'
+#   may not run tests. Use an earlier commit of 'quimby' to get the GitGitGadget
+#   PR workflow instead if your <base-branch> is that old.
 # - <topic-branch> will be force-pushed to your own fork. If you're using quimby
 #   because your usual workflow doesn't use Github at all, that shouldn't bother
 #   you.
 
-QUIMBY_BODY="\
-This pull request was created by https://github.com/nasamuffin/quimby, a tool \
-for Git contributors who are accustomed to a git-format-patch/git-send-email \
-workflow but want to see the GitGitGadget CI run results. It should probably \
-be ignored!"
-
 # Positional parameters
 PARAMS=()
 
-version_flag=
-rfc_flag=
-output_flag=
-
+git_dir=
 
 # Check for args
 while (( "$#" )); do
   case "$1" in
-    -v)
-      version_flag="-v$2"
-      shift 2
-      ;;
-    --rfc)
-      rfc_flag="--rfc"
-      shift
-      ;;
-    -o)
-      output_path="$2"
+    -C)
+      git_dir="-C '$2'"
       shift 2
       ;;
     *)
@@ -62,37 +50,20 @@ while (( "$#" )); do
   esac
 done
 
-if [[ "${#PARAMS[@]}" -ne 2 ]];
+if [[ "${#PARAMS[@]}" -lt 2 ]];
 then
   # todo echo usage
-  echo " quimby [-v <version>] [--rfc] [-o <path>] <base-branch> <topic-branch>"
+  echo " quimby <base-branch> <topic-branch> [args-to-format-patch...]"
   exit
 fi
 
 base_branch="${PARAMS[0]}"
 topic_branch="${PARAMS[1]}"
-subject="[QUIMBY] CI run for ${topic_branch} on top of ${base_branch}"
 
-if [[ -z "${output_path}" ]];
-then
-  output_path="${PWD}"
-fi
-
-# Sneakily, grab the GH username iff a PR already exists.
-# This is hacky!!! It relies on user-targeted output!!! 'gh' seems ill-suited
-# for scripting. :(
-user_name="$(gh -R git/git pr status | grep ":${topic_branch}\]" |
-  grep -v "no pull request" | uniq |
-  sed -e 's/.*\[\(.*\):'"${topic_branch}"'\]/\1/')"
-
-# Check if PR exists on GGG
-if [[ -z "${user_name}" ]];
-then
-  gh -R git/git pr create -d -B "${base_branch#gitster/}" -t "${subject}" \
-    -b "${QUIMBY_BODY}"
-else
-  git push "ssh://git@github.com/${user_name}/git" "${base_branch}" +"${topic_branch}"
-fi
+# Force push to start an Actions run:
+remote="$(git ${git_dir} config quimby.fork)"
+git ${git_dir} push "${remote}" "${base_branch}" +"${topic_branch}"
+echo "Check the Actions tab on your fork to monitor the CI run."
 
 # Determine whether a cover letter is needed
 cover_letter_flag=
@@ -101,5 +72,5 @@ then
   cover_letter_flag="--cover-letter"
 fi
 
-git format-patch ${version_flag} ${rfc_flag} -o "${output_path}" \
-  ${cover_letter_flag} "${base_branch}..${topic_branch}"
+git format-patch ${cover_letter_flag} ${PARAMS[@]:2} \
+  "${base_branch}..${topic_branch}"
