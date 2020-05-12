@@ -57,11 +57,19 @@ then
   exit
 fi
 
+# Check if we have a remote set up.
+remote="$(git ${git_dir} config quimby.fork)"
+while [[ -z "${remote}" ]]; do
+  git ${git_dir} remote -v
+  echo "quimby.fork is not configured. Please provide a remote name or URL:"
+  read remote
+  git ${git_dir} config quimby.fork "${remote}"
+done
+
 base_branch="${PARAMS[0]}"
 topic_branch="${PARAMS[1]}"
 
 # Force push to start an Actions run:
-remote="$(git ${git_dir} config quimby.fork)"
 git ${git_dir} push "${remote}" "${base_branch}" +"${topic_branch}"
 echo "Check the Actions tab on your fork to monitor the CI run."
 
