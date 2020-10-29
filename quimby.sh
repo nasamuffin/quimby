@@ -80,5 +80,5 @@ then
   cover_letter_flag="--cover-letter"
 fi
 
-git format-patch ${cover_letter_flag} ${PARAMS[@]:2} \
+git format-patch ${cover_letter_flag} "${PARAMS[@]:2}" \
   "${base_branch}..${topic_branch}"
