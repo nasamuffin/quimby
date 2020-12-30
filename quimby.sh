@@ -50,11 +50,15 @@ while (( "$#" )); do
   esac
 done
 
+# Infer the relevant branches if not specified
 if [[ "${#PARAMS[@]}" -lt 2 ]];
 then
-  # todo echo usage
-  echo " quimby <base-branch> <topic-branch> [args-to-format-patch...]"
+  base_branch="$(git ${git_dir} rev-parse --abbrev-ref HEAD@{u})"
+  topic_branch="$(git ${git_dir} rev-parse --abbrev-ref HEAD)"
   exit
+else
+  base_branch="${PARAMS[0]}"
+  topic_branch="${PARAMS[1]}"
 fi
 
 # Check if we have a remote set up.
@@ -65,9 +69,6 @@ while [[ -z "${remote}" ]]; do
   read remote
   git ${git_dir} config quimby.fork "${remote}"
 done
-
-base_branch="${PARAMS[0]}"
-topic_branch="${PARAMS[1]}"
 
 # Force push to start an Actions run:
 git ${git_dir} push "${remote}" "${base_branch}" +"${topic_branch}"
