@@ -35,6 +35,7 @@
 PARAMS=()
 
 git_dir=
+version=
 
 # Check for args
 while (( "$#" )); do
@@ -42,6 +43,11 @@ while (( "$#" )); do
     -C)
       git_dir="-C '$2'"
       shift 2
+      ;;
+    -v*)
+      # take everything but the dash
+      version="${1#-v}"
+      shift
       ;;
     *)
       PARAMS+=("$1")
@@ -81,5 +87,6 @@ then
   cover_letter_flag="--cover-letter"
 fi
 
-git format-patch ${cover_letter_flag} "${PARAMS[@]:2}" \
+git format-patch ${cover_letter_flag} \
+  "-v${version}" "${PARAMS[@]}" \
   "${base_branch}..${topic_branch}"
