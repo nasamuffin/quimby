@@ -36,12 +36,33 @@ PARAMS=()
 
 git_dir=
 version=
+mail_dir=
+
+# We gather the configs first, so that we can override them from the command
+# line if necessary.
+
+# Check if we have a remote set up.
+remote="$(git ${git_dir} config quimby.fork)"
+while [[ -z "${remote}" ]]; do
+  git ${git_dir} remote -v
+  echo "quimby.fork is not configured. Please provide a remote name or URL:"
+  read remote
+  git ${git_dir} config quimby.fork "${remote}"
+done
+
+# Check if we have a maildir set up.
+mail_dir="$(git ${git_dir} config quimby.maildir)"
+if [[ "${mail_dir}" ]]; then mail_dir="-o ${mail_dir/#\~/$HOME}"; fi
 
 # Check for args
 while (( "$#" )); do
   case "$1" in
     -C)
       git_dir="-C '$2'"
+      shift 2
+      ;;
+    -o)
+      mail_dir="-o $2"
       shift 2
       ;;
     -v*)
@@ -68,14 +89,6 @@ else
   PARAMS=(${PARAMS[@]:2})
 fi
 
-# Check if we have a remote set up.
-remote="$(git ${git_dir} config quimby.fork)"
-while [[ -z "${remote}" ]]; do
-  git ${git_dir} remote -v
-  echo "quimby.fork is not configured. Please provide a remote name or URL:"
-  read remote
-  git ${git_dir} config quimby.fork "${remote}"
-done
 
 # Force push to start an Actions run:
 git ${git_dir} push "${remote}" "${base_branch}" +"${topic_branch}"
@@ -89,5 +102,6 @@ then
 fi
 
 git format-patch ${cover_letter_flag} \
+  ${mail_dir}/${topic_branch}/v${version} \
   "-v${version}" "${PARAMS[@]}" \
   "${base_branch}..${topic_branch}"
