@@ -65,6 +65,7 @@ then
 else
   base_branch="${PARAMS[0]}"
   topic_branch="${PARAMS[1]}"
+  PARAMS=(${PARAMS[@]:2})
 fi
 
 # Check if we have a remote set up.
