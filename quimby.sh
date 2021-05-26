@@ -89,6 +89,19 @@ else
   PARAMS=(${PARAMS[@]:2})
 fi
 
+# Save a copy
+save_branch="QUIMBY--${topic_branch}--v${version}"
+git branch --force ${save_branch} ${topic_branch}
+echo "Saved mailed state into '${save_branch}'"
+
+# Generate an interdiff if we had a copy of n-1
+rangediff_flag=
+prev_branch="QUIMBY--${topic_branch}--v$((${version}-1))"
+if [[ "$(git show-ref "${prev_branch}")" ]];
+then
+  rangediff_flag="--range-diff=${prev_branch}"
+  echo "including a range-diff from ${prev_branch}"
+fi
 
 # Force push to start an Actions run:
 git ${git_dir} push "${remote}" "${base_branch}" +"${topic_branch}"
@@ -101,7 +114,7 @@ then
   cover_letter_flag="--cover-letter"
 fi
 
-git format-patch ${cover_letter_flag} \
+git format-patch ${cover_letter_flag} ${rangediff_flag} \
   ${mail_dir}/${topic_branch}/v${version} \
   "-v${version}" "${PARAMS[@]}" \
   "${base_branch}..${topic_branch}"
