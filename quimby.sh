@@ -89,8 +89,10 @@ else
   PARAMS=(${PARAMS[@]:2})
 fi
 
-# Save a copy
-save_branch="QUIMBY--${topic_branch}--v${version}"
+# Save a copy.
+# Since this isn't ML-visible, explicitly note v1 (this will help our math for
+# v2)
+save_branch="QUIMBY--${topic_branch}--v${version:-1}"
 git branch --force ${save_branch} ${topic_branch}
 echo "Saved mailed state into '${save_branch}'"
 
@@ -114,7 +116,14 @@ then
   cover_letter_flag="--cover-letter"
 fi
 
+# Break out version flag; it should be excluded if v1.
+version_flag=
+if [[ "${version}" ]];
+then
+  version_flag="-v${version}"
+fi
+
 git format-patch ${cover_letter_flag} ${rangediff_flag} \
-  ${mail_dir}/${topic_branch}/v${version} \
-  "-v${version}" "${PARAMS[@]}" \
+  ${mail_dir}/${topic_branch}/v${version:-1} \
+  ${version_flag} "${PARAMS[@]}" \
   "${base_branch}..${topic_branch}"
