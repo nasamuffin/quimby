@@ -108,6 +108,7 @@ fi
 # Force push to start an Actions run:
 git ${git_dir} push "${remote}" "${base_branch}" +"${topic_branch}"
 echo "Check the Actions tab on your fork to monitor the CI run."
+echo "Maybe at https://github.com/${remote}/git/actions?query=branch%3A${topic_branch}++"
 
 # Determine whether a cover letter is needed
 cover_letter_flag=
